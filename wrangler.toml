@@ -1,0 +1,112 @@
+# ComputeDriven Cloud control plane — NOT DEPLOYED.
+#
+# This file declares the shape of the bindings so the architecture is reviewable
+# and so `connect()` has something real to check for. No account is configured,
+# no Hyperdrive binding exists, no bucket exists. Every id below is a
+# placeholder that is deliberately NOT a plausible-looking real one -- an id that
+# looked real could be copied into a deploy by mistake.
+#
+# Deploying this needs Travis: it spends money and creates accounts
+# (agents/C-infrastructure.md). An agent must not run `wrangler deploy`.
+
+name = "computedriven-cloud-api"
+main = "src/index.mjs"
+compatibility_date = "2026-08-21"
+
+# ---------------------------------------------------------------------------
+# R17 — the control-plane binding has CACHING DISABLED.
+#
+# Everything this Worker reads through it is authorization, tenancy, membership,
+# entitlement or billing state. The reason is sharper than "sensitive data":
+# Hyperdrive observes `SELECT * FROM cd.worlds`, and does NOT observe PostgreSQL
+# rewriting that internally to include app.current_organization_id(). Two
+# different tenants issue a byte-identical query string and the correct answers
+# differ. Tenant isolation must not depend on an edge cache inferring that
+# correctly, forever, across every future query shape.
+#
+# Verify the provider's current caching defaults first-party at the point of use
+# (STACK_HUB.md §0.2). This ruling is about which binding the control plane uses,
+# not about any particular TTL number.
+# ---------------------------------------------------------------------------
+# TWO BINDINGS, BECAUSE THERE ARE TWO AUTHORITIES (finding 94, R80).
+#
+# `computedriven_api` and `computedriven_jobs` are separate PostgreSQL roles and
+# the separation is load-bearing: the API role deliberately has NO EXECUTE on
+# app.observe_storage_object(), because telling the ledger that bytes landed is
+# exactly the client-asserted path R68 replaced. A Hyperdrive configuration
+# carries its own origin user and password, so ONE binding is ONE database
+# credential — and connect()/connectJobs() reading the same binding would have
+# collapsed a boundary dozens of rounds went into making explicit, silently, at
+# the moment the driver was implemented.
+#
+# The alternative — one login granted both roles, with SET ROLE at runtime — is
+# REFUSED: the credential then holds the union of both authorities and the
+# separation is enforced by application convention rather than by the database.
+#
+# Each binding's origin user is a LOGIN principal that inherits exactly one of
+# the two NOLOGIN roles. That is provisioner work (Pigsty), not a migration.
+[[hyperdrive]]
+binding = "HYPERDRIVE_CONTROL"
+id = "PLACEHOLDER-NOT-A-REAL-HYPERDRIVE-ID"
+# origin user: computedriven_api_login  ->  INHERITS computedriven_api
+# caching_disabled = true   # set when the binding is actually created
+
+[[hyperdrive]]
+binding = "HYPERDRIVE_JOBS"
+id = "PLACEHOLDER-NOT-A-REAL-HYPERDRIVE-JOBS-ID"
+# origin user: computedriven_jobs_login  ->  INHERITS computedriven_jobs
+# caching_disabled = true
+
+# A second, cache-enabled binding is deliberately NOT declared. It may be earned
+# later for public, non-sensitive, read-mostly projections -- and when it is, the
+# thing to prove first is that nothing tenant-scoped can reach it.
+
+[vars]
+KEYCLOAK_ISSUER   = "https://auth.computedriven.com/realms/cd"
+KEYCLOAK_JWKS_URI = "https://auth.computedriven.com/realms/cd/protocol/openid-connect/certs"
+OIDC_AUDIENCE     = "computedriven-cloud"
+R2_BUCKET         = "PLACEHOLDER-NOT-A-REAL-BUCKET"
+
+# The ATTESTED provider channel (R77 / finding 89). queue() refuses any batch
+# whose `MessageBatch.queue` is not this string, BEFORE it connects — so a
+# second consumer binding added later cannot quietly start asserting provider
+# truth. Absent is also a refusal: a consumer with no attested channel has no
+# way to tell an authority from a stranger.
+PROVIDER_QUEUE    = "computedriven-r2-notifications"
+
+# ---------------------------------------------------------------------------
+# R77 (CLOUD_V1.md §6.8) — THE PROVIDER-OBSERVATION QUEUE IS A DEDICATED
+# R2-ONLY AUTHORITY CHANNEL.
+#
+# A consumer binding and NO producer binding, here or in any other Worker in the
+# account. Cloudflare documents that any Worker with a producer binding can
+# write to a queue, and the R2 notification body carries no signature and no
+# event id — so a producer binding on this queue is the authority to mint
+# occupancy for any tenant whose key format it can guess.
+#
+# The absence of a `[[queues.producers]]` block is therefore load-bearing, and
+# an absence is not a check. `scripts/check-queue-authority.mjs` enumerates the
+# real queue's producers through the API and refuses when it cannot; it is live
+# falsifier case P and runs BEFORE case D.
+# ---------------------------------------------------------------------------
+[[queues.consumers]]
+queue = "computedriven-r2-notifications"
+max_batch_size = 100
+max_retries = 5
+# FINDING 92. This was a COMMENT saying a DLQ would be set later, which is the
+# most expensive kind of TODO: Cloudflare documents that "without a DLQ
+# configured, messages that reach the retry limit are deleted permanently."
+# Five retries is a buffer, not a durability theorem. If Pigsty is unreachable
+# for long enough, R2 holds the object, the notification is deleted, and
+# committed_bytes never moves — finding 65 arriving from BELOW the database.
+#
+# A DLQ bounds the loss; it does not close it (an unconsumed DLQ retains for
+# four days). The closure is the R2-inventory reconciliation pass, R79 —
+# CLOUD_V1.md §6.9, worker/src/inventory.mjs.
+dead_letter_queue = "computedriven-r2-notifications-dlq"
+
+# R2 is reached with SHORT-LIVED, SCOPED credentials minted per request
+# (agents/D-worker-auth.md, R8) — not with a bucket binding. A binding here would
+# give the Worker standing access to every object in the bucket, which is exactly
+# the broad credential the lane exists to avoid. Bulk bytes never transit the
+# Worker; the client talks to R2 directly with the credential it was issued.

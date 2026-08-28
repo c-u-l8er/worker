@@ -1,0 +1,57 @@
+{
+  "$comment": [
+    "THE RULED PATH (R7), WRITTEN DOWN WHERE A GATE CAN READ IT.",
+    "",
+    "Finding 106, 2026-08-24. Case Q proved two correct credentials and let them",
+    "point at a public-internet PostgreSQL host, because the predicate accepted",
+    "any of Cloudflare's three origin variants as long as CONTROL and JOBS agreed.",
+    "R7 is more specific than that:",
+    "",
+    "    Worker -> Hyperdrive -> Workers VPC Service -> Cloudflare Tunnel -> Pigsty",
+    "",
+    "The Hyperdrive configuration names only a service_id, so everything R7",
+    "actually rules — which tunnel, which host, which port, what TLS — lives on",
+    "the VPC Service object one level down, and has to be compared against an",
+    "EXPECTED value. This file is that value.",
+    "",
+    "WHY IT IS A FILE AND NOT AN ENVIRONMENT VARIABLE. Finding 105: an attestation",
+    "whose subject is caller-chosen is a capability to attest the wrong system. The",
+    "same is true of its expected VALUES — a gate handed both the subject and the",
+    "expectation by its caller proves only that the caller was self-consistent. A",
+    "ruling belongs in the tree, under review, in a diff.",
+    "",
+    "NOTHING IS PROVISIONED. Every value below is a placeholder, deliberately not a",
+    "plausible-looking real one, for the same reason wrangler.toml's ids are: an id",
+    "that looked real could be copied into a deploy by mistake. Creating the tunnel",
+    "and the VPC Service is a spend decision and belongs to Travis",
+    "(agents/C-infrastructure.md)."
+  ],
+  "database": "PLACEHOLDER-NOT-A-REAL-DATABASE",
+  "vpcServiceId": "PLACEHOLDER-NOT-A-REAL-VPC-SERVICE-ID",
+  "tunnelId": "PLACEHOLDER-NOT-A-REAL-TUNNEL-ID",
+  "hostVariant": "ipv4",
+  "$hostVariantComment": [
+    "FINDING 125, 2026-08-24. The ruling now names WHICH of Cloudflare's host",
+    "variants the service must be — ipv4 | ipv6 | dual_stack | hostname — because",
+    "the predicate used to read `host.ipv4 ?? host.ipv6 ?? host.hostname` and take",
+    "the first one present. REPRODUCED: a dual-stack service carrying the expected",
+    "ipv4 and an entirely unreviewed ipv6 passed, reporting only the ipv4. Proving",
+    "one target matches is not proving these are all the targets."
+  ],
+  "targets": ["PLACEHOLDER-NOT-A-REAL-PIGSTY-ADDRESS"],
+  "certVerification": "verify_full",
+  "$certVerificationComment": [
+    "The TLS policy is a RULING, not a preference, and it lives here because the",
+    "code used to say one thing in a comment and enforce another: the note read",
+    "'acceptable for an IP target with a private CA' while accepting verify_ca for",
+    "a HOSTNAME target too, which is the one case where skipping the hostname",
+    "check matters most. verify_full is required unless this file says otherwise,",
+    "and 'disabled' is refused even if this file asks for it."
+  ],
+  "port": 5432,
+  "$portComment": [
+    "5432 is not a placeholder. It is the PostgreSQL port and the VPC Service's",
+    "tcp_port must be it; a service on another port is not the database this",
+    "control plane was built against."
+  ]
+}

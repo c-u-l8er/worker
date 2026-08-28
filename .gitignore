@@ -1,0 +1,13 @@
+node_modules/
+.wrangler/
+
+# Wrangler secrets — never committed. Set these with `wrangler secret put`.
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+
+# OS/editor
+.DS_Store
+*.swp
+*~

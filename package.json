@@ -1,0 +1,30 @@
+{
+  "name": "@computedriven/cloud-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ComputeDriven Cloud control plane. NOT DEPLOYED \u2014 see cloud.computedriven.com/status.json",
+  "//dependencies": [
+    "There are none, and that is deliberate. Token verification uses WebCrypto,",
+    "which exists on workerd and under node, so the battery exercises the code",
+    "that will actually run. agents/D-worker-auth.md names `jose`; if the token",
+    "surface ever grows past one algorithm and one issuer, swap verifyToken()",
+    "for it rather than extending the hand-rolled version.",
+    "",
+    "A PostgreSQL driver is NOT listed because none has been chosen. tenant.mjs",
+    "takes anything with query(sql, params); the Hyperdrive adapter is one file",
+    "at the edge and is still spec."
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "test:sql": "./test/tenant-isolation.sh",
+    "test:sql:control": "CD_SABOTAGE=1 ./test/tenant-isolation.sh",
+    "test:mutation": "./test/sabotage.sh",
+    "test:concurrency": "./test/concurrency.sh",
+    "test:concurrency:lock": "CD_SABOTAGE=lock ./test/concurrency.sh",
+    "test:concurrency:quota": "CD_SABOTAGE=quota ./test/concurrency.sh",
+    "test:concurrency:offer": "CD_SABOTAGE=offer ./test/concurrency.sh",
+    "test:all": "npm run test && npm run test:mutation && npm run test:sql && npm run test:sql:control && npm run test:concurrency && npm run test:concurrency:lock && npm run test:concurrency:quota && npm run test:concurrency:offer && npm run test:concurrency:observe",
+    "test:concurrency:observe": "CD_SABOTAGE=observe ./test/concurrency.sh"
+  }
+}

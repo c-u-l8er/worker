@@ -1,0 +1,69 @@
+{
+  "$comment": [
+    "SHARED fixture. The object-key format is parsed in TWO languages -- ",
+    "reconcile.mjs (the queue consumer) and app.parse_object_key() (the function ",
+    "that decides which tenant an R2 event belongs to). Two parsers for one format ",
+    "is how the two come to disagree, and the disagreement would be a tenancy bug.",
+    "",
+    "So neither is trusted to describe itself. Both read THIS file: the JS test in ",
+    "reconcile.test.mjs and battery group M in tenant-isolation.sh. A case added ",
+    "here is a case both must satisfy, which is the only version of 'pinned ",
+    "together' that is a mechanism rather than a comment."
+  ],
+  "cases": [
+    {
+      "why": "an ordinary content-addressed chunk",
+      "key": "org/aaaaaaaa-0000-4000-8000-000000000001/world/11111111-0000-4000-8000-00000000000a/chunk/abc123",
+      "valid": true,
+      "organizationId": "aaaaaaaa-0000-4000-8000-000000000001",
+      "worldId": "11111111-0000-4000-8000-00000000000a"
+    },
+    {
+      "why": "a manifest, deeper path",
+      "key": "org/aaaaaaaa-0000-4000-8000-000000000001/world/11111111-0000-4000-8000-00000000000a/manifest/2026/08/root.json",
+      "valid": true,
+      "organizationId": "aaaaaaaa-0000-4000-8000-000000000001",
+      "worldId": "11111111-0000-4000-8000-00000000000a"
+    },
+    {
+      "why": "THE PREFIX ITSELF IS NOT AN OBJECT. Accepting it would let a notification about a directory-shaped key be accounted as a write.",
+      "key": "org/aaaaaaaa-0000-4000-8000-000000000001/world/11111111-0000-4000-8000-00000000000a/",
+      "valid": false
+    },
+    {
+      "why": "no world segment",
+      "key": "org/aaaaaaaa-0000-4000-8000-000000000001/chunk/abc",
+      "valid": false
+    },
+    {
+      "why": "organization segment is not a uuid",
+      "key": "org/not-a-uuid/world/11111111-0000-4000-8000-00000000000a/chunk/abc",
+      "valid": false
+    },
+    {
+      "why": "world segment is not a uuid",
+      "key": "org/aaaaaaaa-0000-4000-8000-000000000001/world/nope/chunk/abc",
+      "valid": false
+    },
+    {
+      "why": "not anchored at the start -- a key that merely CONTAINS our prefix is not one of ours",
+      "key": "attacker/org/aaaaaaaa-0000-4000-8000-000000000001/world/11111111-0000-4000-8000-00000000000a/chunk/abc",
+      "valid": false
+    },
+    {
+      "why": "a nil-variant uuid is not a v1-v5 uuid and must not parse",
+      "key": "org/00000000-0000-0000-0000-000000000000/world/11111111-0000-4000-8000-00000000000a/chunk/abc",
+      "valid": false
+    },
+    {
+      "why": "empty",
+      "key": "",
+      "valid": false
+    },
+    {
+      "why": "uppercase uuids -- scopeForWorld lowercases, so an uppercase key was never minted by us",
+      "key": "org/AAAAAAAA-0000-4000-8000-000000000001/world/11111111-0000-4000-8000-00000000000a/chunk/abc",
+      "valid": false
+    }
+  ]
+}
