@@ -175,7 +175,7 @@ export async function authorizeClaims({
   claims,
   conn,
   requestedOrganization,
-  provider = "keycloak",
+  provider = "workos",
   organizationClaim = "organization",
 }) {
   if (!conn) throw new AuthzRefusal("CD-AUTHZ-CONFIG", "a connection is required");

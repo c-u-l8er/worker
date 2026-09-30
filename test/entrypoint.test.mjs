@@ -20,8 +20,8 @@ import { makeKeys, mintWith, ISS, AUD } from "./helpers.mjs";
 let keys, issuerFetches, realFetch;
 
 const ENV = () => ({
-  KEYCLOAK_ISSUER: ISS,
-  KEYCLOAK_JWKS_URI: "https://auth.invalid/jwks",
+  WORKOS_ISSUER: ISS,
+  WORKOS_JWKS_URI: "https://auth.invalid/jwks",
   OIDC_AUDIENCE: AUD,
   R2_BUCKET: "test-bucket",
   // deliberately absent: HYPERDRIVE_CONTROL. connect() refuses, which is correct

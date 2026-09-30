@@ -715,7 +715,7 @@ describe("membership is the gate, not the token", () => {
 
   test("the tenant's provenance names the subject it came from", async () => {
     const res = await auth(fakeConn(ok), { token: await mintWith(keys.pair) });
-    assert.equal(res.tenant.provenance, `keycloak:${ISS}#user-1`);
+    assert.equal(res.tenant.provenance, `workos:${ISS}#user-1`);
   });
 
   test("resolving is NOT authorizing: a null role yields no tenant", async () => {

@@ -57,7 +57,7 @@ export class ServerDerivedOrg {
       throw new TenantRefusal("CD-TENANT-MALFORMED", "organization id is not a uuid");
     }
     this.organizationId = organizationId;
-    this.provenance = provenance; // e.g. "keycloak:<iss>#<sub>"
+    this.provenance = provenance; // e.g. "workos:<iss>#<sub>"
     Object.freeze(this);
   }
   toString() {

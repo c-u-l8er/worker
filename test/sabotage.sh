@@ -370,7 +370,7 @@ VECTORS=(
 "upload-intent-any-permission:::src/r2native.mjs:::  if (scope.permission !== \"object-write\") {:::  if (false) {"
 "upload-intent-needs-no-digest:::src/r2native.mjs:::  if (typeof contentDigest !== \"string\" || contentDigest.trim() === \"\") {:::  if (false) {"
 # --- added 2026-08-22: the COMPOSITION defects -------------------------------
-"jwks-per-request:::src/index.mjs:::        jwksFor(env),:::        new JwksCache({ jwksUri: env.KEYCLOAK_JWKS_URI }),"
+"jwks-per-request:::src/index.mjs:::        jwksFor(env),:::        new JwksCache({ jwksUri: env.WORKOS_JWKS_URI }),"
 "unverified-claims-accepted:::src/authz.mjs:::  assertVerified(claims);:::  void claims;"
 "refresh-uncapped:::src/jwt.mjs:::      if (this.now() - this.forcedAt < this.refreshCooldownMs) return null;:::      if (false) return null;"
 # --- added 2026-08-23, round 8.1: THE PROVISIONING PREDICATES -----------------

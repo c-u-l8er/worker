@@ -83,8 +83,8 @@ function refuse(err) {
 const JWKS_CACHES = new Map();
 
 function jwksFor(env) {
-  const uri = env?.KEYCLOAK_JWKS_URI;
-  if (!uri) throw new JwtRefusal("CD-JWKS-CONFIG", "KEYCLOAK_JWKS_URI is not configured");
+  const uri = env?.WORKOS_JWKS_URI;
+  if (!uri) throw new JwtRefusal("CD-JWKS-CONFIG", "WORKOS_JWKS_URI is not configured");
   let cache = JWKS_CACHES.get(uri);
   if (!cache) {
     cache = new JwksCache({ jwksUri: uri });
@@ -275,7 +275,7 @@ export default {
       const claims = await verifyToken(
         bearer(request),
         jwksFor(env),
-        { issuer: env.KEYCLOAK_ISSUER, audience: env.OIDC_AUDIENCE }
+        { issuer: env.WORKOS_ISSUER, audience: env.OIDC_AUDIENCE }
       );
 
       conn = await connect(env);

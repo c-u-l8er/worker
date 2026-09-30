@@ -62,8 +62,19 @@ id = "PLACEHOLDER-NOT-A-REAL-HYPERDRIVE-JOBS-ID"
 # thing to prove first is that nothing tenant-scoped can reach it.
 
 [vars]
-KEYCLOAK_ISSUER   = "https://auth.computedriven.com/realms/cd"
-KEYCLOAK_JWKS_URI = "https://auth.computedriven.com/realms/cd/protocol/openid-connect/certs"
+# IDENTITY IS WorkOS AuthKit (R95). THREE THINGS REFUSE EVERY REQUEST IF MISSED.
+#  1. AuthKit emits NO `aud` by default -- a JWT TEMPLATE must add one, set to
+#     OIDC_AUDIENCE below. jwt.mjs requires audience and refuses with CD-JWT-AUD
+#     otherwise. Do NOT substitute the `client_id` claim: it is present, it is
+#     tempting, and it is the weakening R22 exists to prevent -- it is also why
+#     Cognito was refused outright.
+#  2. WORKOS_ISSUER moves. It is https://api.workos.com/ by default, changes with
+#     a custom auth domain, and trailing slashes are documented as inconsistent.
+#     It is read from here for exactly that reason; never hardcode a match.
+#  3. Tokens carry `act` during impersonation. An impersonated session is
+#     otherwise byte-identical to a real one. Unhandled as of this writing.
+WORKOS_ISSUER     = "https://api.workos.com/"
+WORKOS_JWKS_URI   = "https://api.workos.com/sso/jwks/PLACEHOLDER-NOT-A-REAL-CLIENT-ID"
 OIDC_AUDIENCE     = "computedriven-cloud"
 R2_BUCKET         = "PLACEHOLDER-NOT-A-REAL-BUCKET"
 
